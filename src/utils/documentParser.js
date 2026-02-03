@@ -2,10 +2,10 @@
 // Uses PDF.js and EPUB.js for rendering
 
 import * as pdfjsLib from 'pdfjs-dist';
-import pdfjsWorker from 'pdfjs-dist/build/pdf.worker.min.mjs?url';
 
-// Configure PDF.js worker (use bundled worker to ensure version match)
-pdfjsLib.GlobalWorkerOptions.workerSrc = pdfjsWorker;
+// Configure PDF.js worker - use CDN with matching version
+const PDFJS_VERSION = pdfjsLib.version;
+pdfjsLib.GlobalWorkerOptions.workerSrc = `https://cdnjs.cloudflare.com/ajax/libs/pdf.js/${PDFJS_VERSION}/pdf.worker.min.mjs`;
 
 // Parse PDF file
 export async function parsePDF(file) {
@@ -54,7 +54,9 @@ export async function parsePDF(file) {
 // Render PDF page to canvas
 export async function renderPDFPage(arrayBuffer, pageNumber, canvas, scale = 1.5) {
   try {
-    const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
+    // Clone buffer to avoid detachment issues
+    const bufferCopy = arrayBuffer.slice(0);
+    const pdf = await pdfjsLib.getDocument({ data: bufferCopy }).promise;
     const page = await pdf.getPage(pageNumber);
 
     const viewport = page.getViewport({ scale });
@@ -62,9 +64,15 @@ export async function renderPDFPage(arrayBuffer, pageNumber, canvas, scale = 1.5
     canvas.height = viewport.height;
 
     const context = canvas.getContext('2d');
+
+    // Fill with white background first
+    context.fillStyle = 'white';
+    context.fillRect(0, 0, canvas.width, canvas.height);
+
     await page.render({
       canvasContext: context,
-      viewport: viewport
+      viewport: viewport,
+      background: 'white'
     }).promise;
 
     return {
@@ -81,7 +89,9 @@ export async function renderPDFPage(arrayBuffer, pageNumber, canvas, scale = 1.5
 // Get PDF text content for a specific page
 export async function getPDFPageText(arrayBuffer, pageNumber) {
   try {
-    const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
+    // Clone buffer to avoid detachment issues
+    const bufferCopy = arrayBuffer.slice(0);
+    const pdf = await pdfjsLib.getDocument({ data: bufferCopy }).promise;
     const page = await pdf.getPage(pageNumber);
     const textContent = await page.getTextContent();
 
@@ -95,7 +105,9 @@ export async function getPDFPageText(arrayBuffer, pageNumber) {
 // Extract cover image from PDF first page
 export async function extractPDFCover(arrayBuffer) {
   try {
-    const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
+    // Clone buffer to avoid detachment issues
+    const bufferCopy = arrayBuffer.slice(0);
+    const pdf = await pdfjsLib.getDocument({ data: bufferCopy }).promise;
     const page = await pdf.getPage(1);
 
     // Use a smaller scale for thumbnail
@@ -108,13 +120,19 @@ export async function extractPDFCover(arrayBuffer) {
     canvas.height = viewport.height;
 
     const context = canvas.getContext('2d');
+
+    // Fill with white background first (for PDFs with transparency)
+    context.fillStyle = 'white';
+    context.fillRect(0, 0, canvas.width, canvas.height);
+
     await page.render({
       canvasContext: context,
-      viewport: viewport
+      viewport: viewport,
+      background: 'white'
     }).promise;
 
-    // Convert to data URL (JPEG for smaller size)
-    const dataUrl = canvas.toDataURL('image/jpeg', 0.7);
+    // Convert to data URL (PNG for better quality with colors)
+    const dataUrl = canvas.toDataURL('image/png');
     return dataUrl;
   } catch (error) {
     console.error('PDF cover extraction error:', error);

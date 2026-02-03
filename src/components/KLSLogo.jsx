@@ -1,45 +1,42 @@
 // KLS Logo - Kapul Learning Systems
-// Modern minimalist logo with initials
+// Modern minimalist logo inspired by Anthropic's style
 
 import React from 'react';
 
 export function KLSLogo({ size = 32, showText = false }) {
   const scale = size / 40;
+  const width = size;
+  const height = size * 0.75; // Rounded rectangle aspect ratio
 
   return (
     <div style={{ display: 'flex', alignItems: 'center', gap: 8 * scale }}>
       <svg
-        width={size}
-        height={size}
-        viewBox="0 0 40 40"
+        width={width}
+        height={height}
+        viewBox="0 0 40 30"
         fill="none"
         xmlns="http://www.w3.org/2000/svg"
       >
-        {/* Background circle with gradient */}
-        <defs>
-          <linearGradient id="klsGradient" x1="0%" y1="0%" x2="100%" y2="100%">
-            <stop offset="0%" stopColor="#F59E0B" />
-            <stop offset="100%" stopColor="#D97706" />
-          </linearGradient>
-          <linearGradient id="klsGradientDark" x1="0%" y1="0%" x2="100%" y2="100%">
-            <stop offset="0%" stopColor="#FBBF24" />
-            <stop offset="100%" stopColor="#F59E0B" />
-          </linearGradient>
-        </defs>
+        {/* Rounded rectangle background - Anthropic style */}
+        <rect
+          x="1"
+          y="1"
+          width="38"
+          height="28"
+          rx="6"
+          fill="#1a1a1a"
+        />
 
-        {/* Main circle background */}
-        <circle cx="20" cy="20" r="18" fill="url(#klsGradient)" />
-
-        {/* KLS Letters - stylized and modern */}
+        {/* KLS Letters - clean and modern */}
         <text
           x="20"
-          y="26"
+          y="20"
           textAnchor="middle"
-          fill="white"
+          fill="#D4A574"
           fontFamily="Inter, -apple-system, BlinkMacSystemFont, sans-serif"
-          fontSize="14"
-          fontWeight="700"
-          letterSpacing="-0.5"
+          fontSize="13"
+          fontWeight="600"
+          letterSpacing="1"
         >
           KLS
         </text>
@@ -63,29 +60,34 @@ export function KLSLogo({ size = 32, showText = false }) {
 
 // Compact logo for small spaces
 export function KLSLogoCompact({ size = 24 }) {
+  const width = size;
+  const height = size * 0.75;
+
   return (
     <svg
-      width={size}
-      height={size}
-      viewBox="0 0 24 24"
+      width={width}
+      height={height}
+      viewBox="0 0 24 18"
       fill="none"
       xmlns="http://www.w3.org/2000/svg"
     >
-      <defs>
-        <linearGradient id="klsCompactGradient" x1="0%" y1="0%" x2="100%" y2="100%">
-          <stop offset="0%" stopColor="#F59E0B" />
-          <stop offset="100%" stopColor="#D97706" />
-        </linearGradient>
-      </defs>
-      <circle cx="12" cy="12" r="11" fill="url(#klsCompactGradient)" />
+      <rect
+        x="0.5"
+        y="0.5"
+        width="23"
+        height="17"
+        rx="4"
+        fill="#1a1a1a"
+      />
       <text
         x="12"
-        y="16"
+        y="13"
         textAnchor="middle"
-        fill="white"
+        fill="#D4A574"
         fontFamily="Inter, sans-serif"
-        fontSize="9"
-        fontWeight="700"
+        fontSize="8"
+        fontWeight="600"
+        letterSpacing="0.5"
       >
         KLS
       </text>
@@ -148,7 +150,7 @@ export function KLSFooterBrand() {
           gap: 8,
           opacity: 0.4,
           padding: '6px 12px',
-          borderRadius: 20,
+          borderRadius: 6,
           background: 'var(--bg-secondary)'
         }}
       >

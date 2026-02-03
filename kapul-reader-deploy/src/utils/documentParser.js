@@ -2,9 +2,10 @@
 // Uses PDF.js and EPUB.js for rendering
 
 import * as pdfjsLib from 'pdfjs-dist';
+import pdfjsWorker from 'pdfjs-dist/build/pdf.worker.min.mjs?url';
 
-// Configure PDF.js worker
-pdfjsLib.GlobalWorkerOptions.workerSrc = `https://cdnjs.cloudflare.com/ajax/libs/pdf.js/4.0.379/pdf.worker.min.mjs`;
+// Configure PDF.js worker (use bundled worker to ensure version match)
+pdfjsLib.GlobalWorkerOptions.workerSrc = pdfjsWorker;
 
 // Parse PDF file
 export async function parsePDF(file) {

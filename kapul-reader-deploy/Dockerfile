@@ -25,7 +25,7 @@ COPY server/package*.json ./server/
 
 # Install server dependencies
 WORKDIR /app/server
-RUN npm ci --only=production
+RUN npm ci --omit=dev
 
 # Copy built frontend from builder stage
 WORKDIR /app

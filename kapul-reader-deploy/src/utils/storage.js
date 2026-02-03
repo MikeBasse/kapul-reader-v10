@@ -164,7 +164,9 @@ export async function saveFileData(bookId, fileData) {
     return new Promise((resolve, reject) => {
       const tx = db.transaction('fileData', 'readwrite');
       const store = tx.objectStore('fileData');
-      store.put({ bookId, data: fileData });
+      // Clone the ArrayBuffer to avoid "detached" error after PDF.js processing
+      const dataToStore = fileData instanceof ArrayBuffer ? fileData.slice(0) : fileData;
+      store.put({ bookId, data: dataToStore });
 
       tx.oncomplete = () => resolve(true);
       tx.onerror = () => reject(tx.error);

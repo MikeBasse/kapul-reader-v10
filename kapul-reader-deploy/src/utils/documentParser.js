@@ -15,6 +15,8 @@ export async function parsePDF(file) {
     reader.onload = async (e) => {
       try {
         const arrayBuffer = e.target.result;
+        // Clone the ArrayBuffer before PDF.js processes it (it may detach the original)
+        const arrayBufferCopy = arrayBuffer.slice(0);
         const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
 
         const metadata = {
@@ -37,7 +39,7 @@ export async function parsePDF(file) {
         resolve({
           ...metadata,
           previewText: textContent.trim(),
-          arrayBuffer: arrayBuffer
+          arrayBuffer: arrayBufferCopy
         });
       } catch (error) {
         reject(new Error('Failed to parse PDF: ' + error.message));

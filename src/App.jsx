@@ -1112,6 +1112,11 @@ export default function App() {
 
         .file-input { display: none; }
 
+        /* Mobile overlay */
+        .sidebar-overlay {
+          display: none;
+        }
+
         /* Responsive */
         @media (max-width: 768px) {
           .sidebar {
@@ -1119,10 +1124,26 @@ export default function App() {
             left: 0;
             top: 0;
             bottom: 0;
-            z-index: 100;
+            z-index: 200;
           }
           .sidebar.collapsed {
             transform: translateX(-100%);
+          }
+          .sidebar-overlay {
+            display: block;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.5);
+            z-index: 150;
+            opacity: 1;
+            transition: opacity 0.2s;
+          }
+          .sidebar-overlay.hidden {
+            opacity: 0;
+            pointer-events: none;
           }
           .stats-grid {
             grid-template-columns: repeat(2, 1fr);
@@ -1143,6 +1164,12 @@ export default function App() {
           className="file-input"
         />
 
+        {/* Mobile Overlay */}
+        <div
+          className={`sidebar-overlay ${sidebarOpen ? '' : 'hidden'}`}
+          onClick={() => setSidebarOpen(false)}
+        />
+
         {/* Sidebar */}
         <aside className={`sidebar ${sidebarOpen ? '' : 'collapsed'}`}>
           <div className="sidebar-header">
@@ -1155,28 +1182,28 @@ export default function App() {
           <nav className="sidebar-nav">
             <button
               className={`nav-item ${activeTab === 'library' ? 'active' : ''}`}
-              onClick={() => setActiveTab('library')}
+              onClick={() => { setActiveTab('library'); setSidebarOpen(false); }}
             >
               <LibraryIcon />
               Library
             </button>
             <button
               className={`nav-item ${activeTab === 'reader' ? 'active' : ''}`}
-              onClick={() => setActiveTab('reader')}
+              onClick={() => { setActiveTab('reader'); setSidebarOpen(false); }}
             >
               <ReadIcon />
               Reader
             </button>
             <button
               className={`nav-item ${activeTab === 'study' ? 'active' : ''}`}
-              onClick={() => setActiveTab('study')}
+              onClick={() => { setActiveTab('study'); setSidebarOpen(false); }}
             >
               <StudyIcon />
               Study
             </button>
             <button
               className="nav-item"
-              onClick={() => setShowSettings(true)}
+              onClick={() => { setShowSettings(true); setSidebarOpen(false); }}
             >
               <SettingsIcon />
               Settings

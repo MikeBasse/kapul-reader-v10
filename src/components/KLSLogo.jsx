@@ -1,41 +1,39 @@
 // KLS Logo - Kapul Learning Systems
-// Modern minimalist logo inspired by Anthropic's style
+// Simple, clean, professional
 
 import React from 'react';
 
 export function KLSLogo({ size = 32, showText = false }) {
   const scale = size / 40;
   const width = size;
-  const height = size * 0.75; // Rounded rectangle aspect ratio
+  const height = size * 0.7;
 
   return (
     <div style={{ display: 'flex', alignItems: 'center', gap: 8 * scale }}>
       <svg
         width={width}
         height={height}
-        viewBox="0 0 40 30"
+        viewBox="0 0 40 28"
         fill="none"
         xmlns="http://www.w3.org/2000/svg"
       >
-        {/* Rounded rectangle background - Anthropic style */}
         <rect
-          x="1"
-          y="1"
-          width="38"
-          height="28"
-          rx="6"
-          fill="#1a1a1a"
+          x="0.5"
+          y="0.5"
+          width="39"
+          height="27"
+          rx="4"
+          fill="white"
+          stroke="#e5e5e5"
         />
-
-        {/* KLS Letters - clean and modern */}
         <text
           x="20"
-          y="20"
+          y="19"
           textAnchor="middle"
-          fill="#D4A574"
+          fill="#000000"
           fontFamily="Inter, -apple-system, BlinkMacSystemFont, sans-serif"
-          fontSize="13"
-          fontWeight="600"
+          fontSize="14"
+          fontWeight="700"
           letterSpacing="1"
         >
           KLS
@@ -58,16 +56,15 @@ export function KLSLogo({ size = 32, showText = false }) {
   );
 }
 
-// Compact logo for small spaces
 export function KLSLogoCompact({ size = 24 }) {
   const width = size;
-  const height = size * 0.75;
+  const height = size * 0.7;
 
   return (
     <svg
       width={width}
       height={height}
-      viewBox="0 0 24 18"
+      viewBox="0 0 24 17"
       fill="none"
       xmlns="http://www.w3.org/2000/svg"
     >
@@ -75,18 +72,19 @@ export function KLSLogoCompact({ size = 24 }) {
         x="0.5"
         y="0.5"
         width="23"
-        height="17"
-        rx="4"
-        fill="#1a1a1a"
+        height="16"
+        rx="3"
+        fill="white"
+        stroke="#e5e5e5"
       />
       <text
         x="12"
-        y="13"
+        y="12"
         textAnchor="middle"
-        fill="#D4A574"
+        fill="#000000"
         fontFamily="Inter, sans-serif"
         fontSize="8"
-        fontWeight="600"
+        fontWeight="700"
         letterSpacing="0.5"
       >
         KLS
@@ -95,7 +93,6 @@ export function KLSLogoCompact({ size = 24 }) {
   );
 }
 
-// Sidebar footer branding component
 export function KLSSidebarBrand() {
   return (
     <div
@@ -124,7 +121,6 @@ export function KLSSidebarBrand() {
   );
 }
 
-// Footer brand for main app (shaded, subtle)
 export function KLSFooterBrand() {
   return (
     <div
@@ -150,7 +146,7 @@ export function KLSFooterBrand() {
           gap: 8,
           opacity: 0.4,
           padding: '6px 12px',
-          borderRadius: 6,
+          borderRadius: 4,
           background: 'var(--bg-secondary)'
         }}
       >

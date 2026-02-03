@@ -1,4 +1,4 @@
-// KLS Logo - Kapil Learning Systems
+// KLS Logo - Kapul Learning Systems
 // Modern minimalist logo with initials
 
 import React from 'react';
@@ -114,7 +114,7 @@ export function KLSSidebarBrand() {
       >
         <KLSLogoCompact size={20} />
         <div style={{ fontSize: 11, color: 'var(--text-secondary)' }}>
-          <div style={{ fontWeight: 500 }}>Kapil Learning Systems</div>
+          <div style={{ fontWeight: 500 }}>Kapul Learning Systems</div>
           <div style={{ opacity: 0.7, fontSize: 10 }}>Powered by KLS</div>
         </div>
       </div>
@@ -161,7 +161,7 @@ export function KLSFooterBrand() {
             letterSpacing: '0.02em'
           }}
         >
-          Kapil Learning Systems
+          Kapul Learning Systems
         </span>
       </div>
     </div>

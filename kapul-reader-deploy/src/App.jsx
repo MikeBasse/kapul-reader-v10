@@ -1,5 +1,5 @@
 // Kapul Reader v2.0 - Production Ready
-// By Kapil Learning Systems (KLS)
+// By Kapul Learning Systems (KLS)
 
 import React, { useState, useRef, useEffect } from 'react';
 import { KLSLogo } from './components/KLSLogo';
@@ -1186,7 +1186,7 @@ export default function App() {
           <div className="sidebar-footer">
             <div className="sidebar-brand">
               <KLSLogo size={14} />
-              Kapil Learning Systems
+              Kapul Learning Systems
             </div>
           </div>
         </aside>

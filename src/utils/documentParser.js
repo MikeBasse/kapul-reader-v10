@@ -51,7 +51,7 @@ export async function parsePDF(file) {
   });
 }
 
-// Render PDF page to canvas
+// Render PDF page to canvas and return text content with positions
 export async function renderPDFPage(arrayBuffer, pageNumber, canvas, scale = 1.5) {
   try {
     // Clone buffer to avoid detachment issues
@@ -75,10 +75,25 @@ export async function renderPDFPage(arrayBuffer, pageNumber, canvas, scale = 1.5
       background: 'white'
     }).promise;
 
+    // Get text content with positions for text layer
+    const textContent = await page.getTextContent();
+    const textItems = textContent.items.map(item => {
+      const tx = pdfjsLib.Util.transform(viewport.transform, item.transform);
+      return {
+        str: item.str,
+        left: tx[4],
+        top: tx[5] - item.height * scale,
+        width: item.width * scale,
+        height: item.height * scale,
+        fontSize: Math.abs(tx[0])
+      };
+    });
+
     return {
       width: viewport.width,
       height: viewport.height,
-      numPages: pdf.numPages
+      numPages: pdf.numPages,
+      textItems: textItems
     };
   } catch (error) {
     console.error('PDF render error:', error);

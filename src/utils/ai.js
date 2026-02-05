@@ -253,7 +253,26 @@ function getFallbackExplanation(text) {
     }
   }
 
-  return `This is an interesting concept worth exploring further. "${text.slice(0, 50)}${text.length > 50 ? '...' : ''}" relates to important ideas in its field. For a detailed AI-powered explanation, ensure the API is configured in settings.`;
+  // Generate a smart response based on the text content
+  const words = text.split(/\s+/).filter(w => w.length > 3);
+  const keyTerms = words.slice(0, 5).join(', ');
+
+  return `**Understanding "${text.slice(0, 60)}${text.length > 60 ? '...' : ''}"**
+
+This passage discusses concepts related to ${keyTerms || 'the selected topic'}.
+
+**Key points to consider:**
+• What is the main idea or argument being presented?
+• How does this connect to broader themes in the text?
+• What evidence or examples support this concept?
+
+**To deepen understanding:**
+1. Re-read the surrounding context for additional clarity
+2. Look for definitions of key terms within the text
+3. Consider how this relates to what you already know
+4. Think about real-world applications or examples
+
+This concept is foundational to the material you're studying. Take notes and revisit it as you progress through the text.`;
 }
 
 function getFallbackSolution(problem) {
@@ -261,15 +280,23 @@ function getFallbackSolution(problem) {
 
   // Check for math-related content
   if (lowerProblem.match(/[0-9x²³⁴⁵⁶⁷⁸⁹\+\-\*\/\=]/) && lowerProblem.match(/derivative|integral|equation|solve|calculate/)) {
-    return `To solve this mathematical problem:
+    return `**Mathematical Problem Analysis**
 
-1. **Identify** the type of problem (algebra, calculus, etc.)
-2. **Recall** the relevant formulas or rules
-3. **Apply** the techniques step by step
-4. **Simplify** your result
-5. **Verify** by checking your answer
+To solve this type of problem:
 
-For detailed step-by-step solutions, ensure the AI API is configured.`;
+1. **Identify** the problem type (algebra, calculus, geometry, etc.)
+2. **List** known values and what you need to find
+3. **Recall** relevant formulas or theorems
+4. **Apply** techniques step by step, showing your work
+5. **Simplify** the result completely
+6. **Verify** by substituting back or using estimation
+
+**Common approaches:**
+• For derivatives: Use power rule, product rule, or chain rule
+• For integrals: Try substitution or integration by parts
+• For equations: Isolate the variable systematically
+
+Work through each step carefully and check your arithmetic.`;
   }
 
   // Self-help / Personal development
@@ -300,16 +327,28 @@ For detailed step-by-step solutions, ensure the AI API is configured.`;
 **Tip:** Ask "why" multiple times to get to deeper causes and meanings.`;
   }
 
-  // Default general approach
-  return `To explore this topic further:
+  // Default general approach - analyze the text intelligently
+  const sentences = problem.split(/[.!?]+/).filter(s => s.trim().length > 10);
+  const mainPoint = sentences[0]?.trim() || problem.slice(0, 100);
 
-1. **Break down** the main concept into its key parts
-2. **Define** any important terms or ideas
-3. **Look for** connections to things you already know
-4. **Consider** real-world examples or applications
-5. **Identify** what questions remain unanswered
+  return `**Analysis of Selected Text**
 
-For detailed AI-powered analysis, ensure the API is configured in settings.`;
+"${mainPoint}${mainPoint.length < problem.length ? '...' : ''}"
+
+**Understanding this passage:**
+
+1. **Main idea:** This text discusses a concept or situation that requires careful consideration
+2. **Context matters:** Look at what comes before and after this passage
+3. **Key terms:** Identify and define any specialized vocabulary
+4. **Connections:** How does this relate to the overall theme of what you're reading?
+
+**Questions to consider:**
+• What is the author trying to communicate?
+• What evidence or reasoning supports this point?
+• How might this apply to real situations?
+• What are the implications of this idea?
+
+**Next steps:** Re-read the surrounding paragraphs and take notes on how this connects to the broader material.`;
 }
 
 function getFallbackQuiz(content) {

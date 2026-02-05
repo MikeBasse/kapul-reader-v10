@@ -5,15 +5,15 @@ import { renderPDFPage, getPDFPageText, createEPUBReader } from '../utils/docume
 // PDF Viewer Component
 export function PDFViewer({ fileData, onPageChange, onTextSelect, initialPage = 1 }) {
   const canvasRef = useRef(null);
+  const textLayerRef = useRef(null);
   const containerRef = useRef(null);
   const [currentPage, setCurrentPage] = useState(initialPage);
   const [numPages, setNumPages] = useState(0);
   const [scale, setScale] = useState(1.2);
   const [initialLoading, setInitialLoading] = useState(true);
   const [error, setError] = useState(null);
-  const [pageText, setPageText] = useState('');
+  const [canvasSize, setCanvasSize] = useState({ width: 0, height: 0 });
   const renderingRef = useRef(false);
-  const pdfDocRef = useRef(null);
 
   // Use refs for callbacks to prevent re-render loops
   const onPageChangeRef = useRef(onPageChange);
@@ -38,10 +38,30 @@ export function PDFViewer({ fileData, onPageChange, onTextSelect, initialPage = 
       try {
         const result = await renderPDFPage(fileData, currentPage, canvasRef.current, scale);
         setNumPages(result.numPages);
+        setCanvasSize({ width: result.width, height: result.height });
 
-        // Extract text for selection
-        const text = await getPDFPageText(fileData, currentPage);
-        setPageText(text);
+        // Build text layer for selection
+        if (textLayerRef.current && result.textItems) {
+          textLayerRef.current.innerHTML = '';
+          result.textItems.forEach(item => {
+            if (item.str.trim()) {
+              const span = document.createElement('span');
+              span.textContent = item.str;
+              span.style.cssText = `
+                position: absolute;
+                left: ${item.left}px;
+                top: ${item.top}px;
+                font-size: ${item.fontSize}px;
+                font-family: sans-serif;
+                color: transparent;
+                white-space: pre;
+                pointer-events: all;
+                user-select: text;
+              `;
+              textLayerRef.current.appendChild(span);
+            }
+          });
+        }
 
         if (onPageChangeRef.current) {
           onPageChangeRef.current(currentPage, result.numPages);
@@ -63,7 +83,7 @@ export function PDFViewer({ fileData, onPageChange, onTextSelect, initialPage = 
     const selection = window.getSelection();
     const text = selection?.toString().trim();
     if (text && text.length > 3 && onTextSelectRef.current) {
-      onTextSelectRef.current(text, pageText);
+      onTextSelectRef.current(text);
     }
   };
 
@@ -180,13 +200,26 @@ export function PDFViewer({ fileData, onPageChange, onTextSelect, initialPage = 
           justify-content: center;
           align-items: flex-start;
           padding: 20px;
+        }
+        .pdf-page-wrapper {
           position: relative;
+          box-shadow: 0 2px 10px rgba(0,0,0,0.1);
         }
         .pdf-canvas {
-          box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+          display: block;
           background: white;
-          transform: translateZ(0);
-          backface-visibility: hidden;
+        }
+        .pdf-text-layer {
+          position: absolute;
+          top: 0;
+          left: 0;
+          right: 0;
+          bottom: 0;
+          overflow: hidden;
+          line-height: 1;
+        }
+        .pdf-text-layer ::selection {
+          background: rgba(184, 87, 12, 0.3);
         }
         .pdf-loading-overlay {
           position: absolute;
@@ -234,10 +267,17 @@ export function PDFViewer({ fileData, onPageChange, onTextSelect, initialPage = 
         </div>
       </div>
 
-      <div className="pdf-canvas-container" onMouseUp={handleMouseUp}>
+      <div className="pdf-canvas-container">
         {initialLoading && <div className="pdf-loading-overlay">Loading document...</div>}
         {error && <div className="pdf-error">{error}</div>}
-        <canvas ref={canvasRef} className="pdf-canvas" />
+        <div className="pdf-page-wrapper" style={{ width: canvasSize.width, height: canvasSize.height }}>
+          <canvas ref={canvasRef} className="pdf-canvas" />
+          <div
+            ref={textLayerRef}
+            className="pdf-text-layer"
+            onMouseUp={handleMouseUp}
+          />
+        </div>
       </div>
     </div>
   );

@@ -271,7 +271,7 @@ export async function extractEPUBCover(arrayBuffer) {
 }
 
 // Create EPUB renderer
-export async function createEPUBReader(arrayBuffer, containerElement) {
+export async function createEPUBReader(arrayBuffer, containerElement, startLocation = null) {
   const ePub = (await import('epubjs')).default;
 
   try {
@@ -283,7 +283,25 @@ export async function createEPUBReader(arrayBuffer, containerElement) {
       flow: 'paginated'
     });
 
-    await rendition.display();
+    // Wait for book to be ready
+    await book.ready;
+
+    // Generate locations for accurate progress tracking
+    await book.locations.generate(1024);
+
+    // Display at start location or beginning of book
+    if (startLocation) {
+      await rendition.display(startLocation);
+    } else {
+      // Start at the very beginning (cover or first chapter)
+      const spine = book.spine;
+      if (spine && spine.items && spine.items.length > 0) {
+        // Display the first spine item (usually cover or first chapter)
+        await rendition.display(spine.items[0].href);
+      } else {
+        await rendition.display();
+      }
+    }
 
     return {
       book,

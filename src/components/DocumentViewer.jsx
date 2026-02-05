@@ -9,15 +9,16 @@ export function PDFViewer({ fileData, onPageChange, onTextSelect, initialPage = 
   const [currentPage, setCurrentPage] = useState(initialPage);
   const [numPages, setNumPages] = useState(0);
   const [scale, setScale] = useState(1.2);
-  const [loading, setLoading] = useState(true);
+  const [initialLoading, setInitialLoading] = useState(true);
   const [error, setError] = useState(null);
   const [pageText, setPageText] = useState('');
+  const isRendering = useRef(false);
 
   // Render current page
   const renderPage = useCallback(async () => {
-    if (!fileData || !canvasRef.current) return;
+    if (!fileData || !canvasRef.current || isRendering.current) return;
 
-    setLoading(true);
+    isRendering.current = true;
     setError(null);
 
     try {
@@ -35,7 +36,8 @@ export function PDFViewer({ fileData, onPageChange, onTextSelect, initialPage = 
       console.error('PDF render error:', err);
       setError('Failed to render page');
     } finally {
-      setLoading(false);
+      isRendering.current = false;
+      setInitialLoading(false);
     }
   }, [fileData, currentPage, scale, onPageChange]);
 
@@ -163,18 +165,28 @@ export function PDFViewer({ fileData, onPageChange, onTextSelect, initialPage = 
           overflow: auto;
           display: flex;
           justify-content: center;
+          align-items: flex-start;
           padding: 20px;
+          position: relative;
         }
         .pdf-canvas {
           box-shadow: 0 2px 10px rgba(0,0,0,0.1);
           background: white;
+          transform: translateZ(0);
+          backface-visibility: hidden;
         }
-        .pdf-loading {
+        .pdf-loading-overlay {
+          position: absolute;
+          top: 0;
+          left: 0;
+          right: 0;
+          bottom: 0;
           display: flex;
           align-items: center;
           justify-content: center;
-          height: 200px;
+          background: var(--bg-secondary);
           color: var(--text-secondary);
+          z-index: 10;
         }
         .pdf-error {
           color: var(--danger);
@@ -210,13 +222,9 @@ export function PDFViewer({ fileData, onPageChange, onTextSelect, initialPage = 
       </div>
 
       <div className="pdf-canvas-container" onMouseUp={handleMouseUp}>
-        {loading && <div className="pdf-loading">Loading page...</div>}
+        {initialLoading && <div className="pdf-loading-overlay">Loading document...</div>}
         {error && <div className="pdf-error">{error}</div>}
-        <canvas
-          ref={canvasRef}
-          className="pdf-canvas"
-          style={{ display: loading ? 'none' : 'block' }}
-        />
+        <canvas ref={canvasRef} className="pdf-canvas" />
       </div>
     </div>
   );
@@ -256,7 +264,8 @@ export function EPUBViewer({ fileData, onPageChange, onTextSelect, initialLocati
         // Clear previous content
         containerRef.current.innerHTML = '';
 
-        const reader = await createEPUBReader(fileData, containerRef.current);
+        // Create reader with start location (null starts at beginning)
+        const reader = await createEPUBReader(fileData, containerRef.current, initialLocation);
         readerRef.current = reader;
 
         // Get table of contents
@@ -266,9 +275,9 @@ export function EPUBViewer({ fileData, onPageChange, onTextSelect, initialLocati
         // Handle location changes
         reader.rendition.on('locationChanged', (location) => {
           setCurrentLocation(location);
-          if (onPageChangeRef.current) {
+          if (onPageChangeRef.current && location?.start?.cfi) {
             const progress = reader.book.locations.percentageFromCfi(location.start.cfi);
-            onPageChangeRef.current(Math.round(progress * 100), 100);
+            onPageChangeRef.current(Math.round((progress || 0) * 100), 100);
           }
         });
 
@@ -280,11 +289,6 @@ export function EPUBViewer({ fileData, onPageChange, onTextSelect, initialLocati
             onTextSelectRef.current(text);
           }
         });
-
-        // Navigate to initial location if provided
-        if (initialLocation) {
-          await reader.goto(initialLocation);
-        }
       } catch (err) {
         console.error('EPUB init error:', err);
         setError('Failed to load book');
@@ -364,13 +368,26 @@ export function EPUBViewer({ fileData, onPageChange, onTextSelect, initialLocati
         .epub-content {
           flex: 1;
           overflow: hidden;
+          position: relative;
         }
-        .epub-loading {
+        .epub-reader-container {
+          width: 100%;
+          height: 100%;
+          transform: translateZ(0);
+          backface-visibility: hidden;
+        }
+        .epub-loading-overlay {
+          position: absolute;
+          top: 0;
+          left: 0;
+          right: 0;
+          bottom: 0;
           display: flex;
           align-items: center;
           justify-content: center;
-          height: 200px;
+          background: var(--bg);
           color: var(--text-secondary);
+          z-index: 10;
         }
         .epub-error {
           color: var(--danger);
@@ -447,16 +464,9 @@ export function EPUBViewer({ fileData, onPageChange, onTextSelect, initialLocati
       )}
 
       <div className="epub-content">
-        {loading && <div className="epub-loading">Loading book...</div>}
+        {loading && <div className="epub-loading-overlay">Loading book...</div>}
         {error && <div className="epub-error">{error}</div>}
-        <div
-          ref={containerRef}
-          style={{
-            width: '100%',
-            height: '100%',
-            display: loading ? 'none' : 'block'
-          }}
-        />
+        <div ref={containerRef} className="epub-reader-container" />
       </div>
     </div>
   );

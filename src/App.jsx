@@ -366,31 +366,31 @@ export default function App() {
         html, body, #root { height: 100%; }
 
         :root {
-          --bg: #ffffff;
-          --bg-secondary: #fafafa;
-          --bg-tertiary: #f5f5f5;
-          --bg-sidebar: #fafafa;
-          --border: #e5e5e5;
-          --text: #171717;
-          --text-secondary: #525252;
-          --text-tertiary: #a3a3a3;
-          --accent: #171717;
-          --accent-hover: #262626;
+          --bg: #F9F7F3;
+          --bg-secondary: #F3F1ED;
+          --bg-tertiary: #EBE9E5;
+          --bg-sidebar: #F3F1ED;
+          --border: #DDD9D3;
+          --text: #1a1915;
+          --text-secondary: #5c5750;
+          --text-tertiary: #9c9689;
+          --accent: #B8570C;
+          --accent-hover: #9A4A0A;
           --danger: #dc2626;
         }
 
         @media (prefers-color-scheme: dark) {
           :root {
-            --bg: #0a0a0a;
-            --bg-secondary: #141414;
-            --bg-tertiary: #1f1f1f;
-            --bg-sidebar: #0f0f0f;
-            --border: #262626;
-            --text: #fafafa;
-            --text-secondary: #a3a3a3;
-            --text-tertiary: #525252;
-            --accent: #fafafa;
-            --accent-hover: #e5e5e5;
+            --bg: #1a1915;
+            --bg-secondary: #252219;
+            --bg-tertiary: #302d24;
+            --bg-sidebar: #1f1c16;
+            --border: #3d392f;
+            --text: #F9F7F3;
+            --text-secondary: #b5afa3;
+            --text-tertiary: #7a7568;
+            --accent: #D4A373;
+            --accent-hover: #E5BE93;
           }
         }
 

@@ -1,5 +1,5 @@
 // Document Viewer Component for PDF and EPUB files
-import React, { useState, useEffect, useRef, useCallback } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { renderPDFPage, getPDFPageText, createEPUBReader } from '../utils/documentParser';
 
 // PDF Viewer Component
@@ -12,45 +12,58 @@ export function PDFViewer({ fileData, onPageChange, onTextSelect, initialPage = 
   const [initialLoading, setInitialLoading] = useState(true);
   const [error, setError] = useState(null);
   const [pageText, setPageText] = useState('');
-  const isRendering = useRef(false);
+  const renderingRef = useRef(false);
+  const pdfDocRef = useRef(null);
 
-  // Render current page
-  const renderPage = useCallback(async () => {
-    if (!fileData || !canvasRef.current || isRendering.current) return;
-
-    isRendering.current = true;
-    setError(null);
-
-    try {
-      const result = await renderPDFPage(fileData, currentPage, canvasRef.current, scale);
-      setNumPages(result.numPages);
-
-      // Extract text for selection
-      const text = await getPDFPageText(fileData, currentPage);
-      setPageText(text);
-
-      if (onPageChange) {
-        onPageChange(currentPage, result.numPages);
-      }
-    } catch (err) {
-      console.error('PDF render error:', err);
-      setError('Failed to render page');
-    } finally {
-      isRendering.current = false;
-      setInitialLoading(false);
-    }
-  }, [fileData, currentPage, scale, onPageChange]);
+  // Use refs for callbacks to prevent re-render loops
+  const onPageChangeRef = useRef(onPageChange);
+  const onTextSelectRef = useRef(onTextSelect);
 
   useEffect(() => {
+    onPageChangeRef.current = onPageChange;
+  }, [onPageChange]);
+
+  useEffect(() => {
+    onTextSelectRef.current = onTextSelect;
+  }, [onTextSelect]);
+
+  // Render current page - only depends on fileData, currentPage, scale
+  useEffect(() => {
+    const renderPage = async () => {
+      if (!fileData || !canvasRef.current || renderingRef.current) return;
+
+      renderingRef.current = true;
+      setError(null);
+
+      try {
+        const result = await renderPDFPage(fileData, currentPage, canvasRef.current, scale);
+        setNumPages(result.numPages);
+
+        // Extract text for selection
+        const text = await getPDFPageText(fileData, currentPage);
+        setPageText(text);
+
+        if (onPageChangeRef.current) {
+          onPageChangeRef.current(currentPage, result.numPages);
+        }
+      } catch (err) {
+        console.error('PDF render error:', err);
+        setError('Failed to render page');
+      } finally {
+        renderingRef.current = false;
+        setInitialLoading(false);
+      }
+    };
+
     renderPage();
-  }, [renderPage]);
+  }, [fileData, currentPage, scale]);
 
   // Handle text selection
   const handleMouseUp = () => {
     const selection = window.getSelection();
     const text = selection?.toString().trim();
-    if (text && text.length > 3 && onTextSelect) {
-      onTextSelect(text, pageText);
+    if (text && text.length > 3 && onTextSelectRef.current) {
+      onTextSelectRef.current(text, pageText);
     }
   };
 

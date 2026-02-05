@@ -4,7 +4,7 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { KLSLogo } from './components/KLSLogo';
 import { DocumentViewer } from './components/DocumentViewer';
-import { parseDocument, extractPDFCover } from './utils/documentParser';
+import { parseDocument, extractPDFCover, extractEPUBCover } from './utils/documentParser';
 import {
   initDB,
   getBooks,
@@ -30,7 +30,6 @@ import {
 import {
   explainText,
   solveProblem,
-  generateQuiz,
   generateFlashcards,
   checkAPIStatus
 } from './utils/ai';
@@ -107,13 +106,6 @@ export default function App() {
   const [highlights, setHighlights] = useState([]);
   const [flashcards, setFlashcards] = useState([]);
   const [studyStats, setStudyStats] = useState({ pagesRead: 0, problemsSolved: 0, flashcards: 0, quizScore: 0 });
-
-  // Quiz state
-  const [quizActive, setQuizActive] = useState(false);
-  const [quizQuestions, setQuizQuestions] = useState([]);
-  const [quizIndex, setQuizIndex] = useState(0);
-  const [showAnswer, setShowAnswer] = useState(false);
-  const [quizScore, setQuizScore] = useState({ correct: 0, total: 0 });
 
   // Library state
   const [viewMode, setViewMode] = useState('grid');
@@ -257,13 +249,17 @@ export default function App() {
     try {
       const docData = await parseDocument(file);
 
-      // Extract cover image from first page
+      // Extract cover image
       let coverImage = null;
-      if (isPdf && docData.arrayBuffer) {
+      if (docData.arrayBuffer) {
         try {
-          coverImage = await extractPDFCover(docData.arrayBuffer);
+          if (isPdf) {
+            coverImage = await extractPDFCover(docData.arrayBuffer);
+          } else if (isEpub) {
+            coverImage = await extractEPUBCover(docData.arrayBuffer);
+          }
         } catch (e) {
-          console.log('Could not extract cover');
+          console.log('Could not extract cover:', e);
         }
       }
 
@@ -420,12 +416,13 @@ export default function App() {
           display: flex;
           flex-direction: column;
           flex-shrink: 0;
-          transition: transform 0.2s ease, width 0.2s ease;
+          transition: transform 0.3s ease;
+          overflow: hidden;
         }
 
         .sidebar.collapsed {
-          width: 0;
           transform: translateX(-240px);
+          visibility: hidden;
         }
 
         .sidebar-header {
@@ -690,12 +687,9 @@ export default function App() {
 
         .book-card {
           cursor: pointer;
-          transition: transform 0.15s;
           position: relative;
-        }
-
-        .book-card:hover {
-          transform: translateY(-2px);
+          transform: translateZ(0);
+          backface-visibility: hidden;
         }
 
         .book-cover {
@@ -706,12 +700,14 @@ export default function App() {
           background: var(--bg-tertiary);
           margin-bottom: 10px;
           box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+          transform: translateZ(0);
         }
 
         .book-cover img {
           width: 100%;
           height: 100%;
           object-fit: cover;
+          display: block;
         }
 
         .book-cover-placeholder {
@@ -770,13 +766,15 @@ export default function App() {
           color: white;
           font-size: 14px;
           cursor: pointer;
-          display: none;
+          display: flex;
           align-items: center;
           justify-content: center;
+          opacity: 0;
+          transition: opacity 0.15s ease;
         }
 
         .book-card:hover .book-delete {
-          display: flex;
+          opacity: 1;
         }
 
         .book-title {
@@ -792,6 +790,9 @@ export default function App() {
         .book-author {
           font-size: 12px;
           color: var(--text-secondary);
+          overflow: hidden;
+          text-overflow: ellipsis;
+          white-space: nowrap;
         }
 
         /* Book List */
@@ -809,7 +810,7 @@ export default function App() {
           border: 1px solid var(--border);
           border-radius: 8px;
           cursor: pointer;
-          transition: all 0.15s;
+          transition: border-color 0.15s ease;
         }
 
         .book-list-item:hover {
@@ -1124,10 +1125,14 @@ export default function App() {
             left: 0;
             top: 0;
             bottom: 0;
+            width: 240px;
             z-index: 200;
+            transform: translateX(0);
+            visibility: visible;
           }
           .sidebar.collapsed {
             transform: translateX(-100%);
+            visibility: hidden;
           }
           .sidebar-overlay {
             display: block;
@@ -1139,7 +1144,7 @@ export default function App() {
             background: rgba(0, 0, 0, 0.5);
             z-index: 150;
             opacity: 1;
-            transition: opacity 0.2s;
+            transition: opacity 0.3s;
           }
           .sidebar-overlay.hidden {
             opacity: 0;
@@ -1151,6 +1156,19 @@ export default function App() {
           .ai-panel {
             width: 100%;
             left: 0;
+          }
+          .book-grid {
+            grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+            gap: 16px;
+          }
+          .library-header {
+            flex-direction: column;
+            align-items: flex-start;
+            gap: 12px;
+          }
+          .library-actions {
+            width: 100%;
+            justify-content: space-between;
           }
         }
       `}</style>
@@ -1425,7 +1443,9 @@ export default function App() {
           </div>
 
           {selectedText && (
-            <div className="selected-box">{selectedText.slice(0, 150)}...</div>
+            <div className="selected-box">
+              {selectedText.length > 150 ? selectedText.slice(0, 150) + '...' : selectedText}
+            </div>
           )}
 
           <div className="ai-actions">

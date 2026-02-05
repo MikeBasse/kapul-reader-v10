@@ -70,15 +70,15 @@ export function PDFViewer({ fileData, onPageChange, onTextSelect, initialPage = 
   useEffect(() => {
     const handleKeyDown = (e) => {
       if (e.key === 'ArrowRight' || e.key === 'PageDown') {
-        nextPage();
+        setCurrentPage(prev => Math.min(prev + 1, numPages));
       } else if (e.key === 'ArrowLeft' || e.key === 'PageUp') {
-        prevPage();
+        setCurrentPage(prev => Math.max(prev - 1, 1));
       }
     };
 
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [currentPage, numPages]);
+  }, [numPages]);
 
   return (
     <div className="pdf-viewer" ref={containerRef}>
@@ -232,6 +232,18 @@ export function EPUBViewer({ fileData, onPageChange, onTextSelect, initialLocati
   const [toc, setToc] = useState([]);
   const [showToc, setShowToc] = useState(false);
 
+  // Use refs for callbacks to avoid stale closures without triggering re-init
+  const onPageChangeRef = useRef(onPageChange);
+  const onTextSelectRef = useRef(onTextSelect);
+
+  useEffect(() => {
+    onPageChangeRef.current = onPageChange;
+  }, [onPageChange]);
+
+  useEffect(() => {
+    onTextSelectRef.current = onTextSelect;
+  }, [onTextSelect]);
+
   // Initialize EPUB reader
   useEffect(() => {
     if (!fileData || !containerRef.current) return;
@@ -254,9 +266,9 @@ export function EPUBViewer({ fileData, onPageChange, onTextSelect, initialLocati
         // Handle location changes
         reader.rendition.on('locationChanged', (location) => {
           setCurrentLocation(location);
-          if (onPageChange) {
+          if (onPageChangeRef.current) {
             const progress = reader.book.locations.percentageFromCfi(location.start.cfi);
-            onPageChange(Math.round(progress * 100), 100);
+            onPageChangeRef.current(Math.round(progress * 100), 100);
           }
         });
 
@@ -264,8 +276,8 @@ export function EPUBViewer({ fileData, onPageChange, onTextSelect, initialLocati
         reader.rendition.on('selected', (cfiRange, contents) => {
           const selection = contents.window.getSelection();
           const text = selection?.toString().trim();
-          if (text && text.length > 3 && onTextSelect) {
-            onTextSelect(text);
+          if (text && text.length > 3 && onTextSelectRef.current) {
+            onTextSelectRef.current(text);
           }
         });
 
@@ -289,7 +301,7 @@ export function EPUBViewer({ fileData, onPageChange, onTextSelect, initialLocati
         readerRef.current = null;
       }
     };
-  }, [fileData]);
+  }, [fileData, initialLocation]);
 
   // Navigation
   const nextPage = () => readerRef.current?.next();

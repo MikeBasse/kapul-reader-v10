@@ -93,16 +93,19 @@ export async function saveBooks(books) {
   await initDB();
 
   if (db) {
-    const tx = db.transaction('books', 'readwrite');
-    const store = tx.objectStore('books');
-
-    // Clear and re-add all books
-    await store.clear();
-    for (const book of books) {
-      await store.add(book);
-    }
-
     return new Promise((resolve, reject) => {
+      const tx = db.transaction('books', 'readwrite');
+      const store = tx.objectStore('books');
+
+      // Clear first, then add all books
+      const clearRequest = store.clear();
+      clearRequest.onsuccess = () => {
+        for (const book of books) {
+          store.add(book);
+        }
+      };
+      clearRequest.onerror = () => reject(clearRequest.error);
+
       tx.oncomplete = () => resolve(true);
       tx.onerror = () => reject(tx.error);
     });
@@ -216,15 +219,18 @@ export async function saveHighlights(highlights) {
   await initDB();
 
   if (db) {
-    const tx = db.transaction('highlights', 'readwrite');
-    const store = tx.objectStore('highlights');
-
-    await store.clear();
-    for (const highlight of highlights) {
-      await store.add(highlight);
-    }
-
     return new Promise((resolve, reject) => {
+      const tx = db.transaction('highlights', 'readwrite');
+      const store = tx.objectStore('highlights');
+
+      const clearRequest = store.clear();
+      clearRequest.onsuccess = () => {
+        for (const highlight of highlights) {
+          store.add(highlight);
+        }
+      };
+      clearRequest.onerror = () => reject(clearRequest.error);
+
       tx.oncomplete = () => resolve(true);
       tx.onerror = () => reject(tx.error);
     });
@@ -326,15 +332,18 @@ export async function saveFlashcards(flashcards) {
   await initDB();
 
   if (db) {
-    const tx = db.transaction('flashcards', 'readwrite');
-    const store = tx.objectStore('flashcards');
-
-    await store.clear();
-    for (const card of flashcards) {
-      await store.add(card);
-    }
-
     return new Promise((resolve, reject) => {
+      const tx = db.transaction('flashcards', 'readwrite');
+      const store = tx.objectStore('flashcards');
+
+      const clearRequest = store.clear();
+      clearRequest.onsuccess = () => {
+        for (const card of flashcards) {
+          store.add(card);
+        }
+      };
+      clearRequest.onerror = () => reject(clearRequest.error);
+
       tx.oncomplete = () => resolve(true);
       tx.onerror = () => reject(tx.error);
     });

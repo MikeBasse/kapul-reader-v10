@@ -201,6 +201,75 @@ export async function parseEPUB(file) {
   });
 }
 
+// Extract cover image from EPUB file
+export async function extractEPUBCover(arrayBuffer) {
+  const ePub = (await import('epubjs')).default;
+
+  try {
+    // Clone buffer to avoid detachment issues
+    const bufferCopy = arrayBuffer.slice(0);
+    const book = ePub(bufferCopy);
+
+    await book.ready;
+
+    // Try to get cover URL from epub.js
+    const coverUrl = await book.coverUrl();
+
+    if (coverUrl) {
+      // Fetch the cover image and convert to data URL
+      const response = await fetch(coverUrl);
+      const blob = await response.blob();
+
+      return new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onloadend = () => {
+          // Clean up the blob URL
+          URL.revokeObjectURL(coverUrl);
+          book.destroy();
+          resolve(reader.result);
+        };
+        reader.onerror = () => {
+          URL.revokeObjectURL(coverUrl);
+          book.destroy();
+          reject(new Error('Failed to read cover image'));
+        };
+        reader.readAsDataURL(blob);
+      });
+    }
+
+    // If no cover URL, try to find cover in resources/manifest
+    const resources = await book.loaded.resources;
+    if (resources && resources.replacements) {
+      for (const [href, url] of Object.entries(resources.replacements)) {
+        if (href.toLowerCase().includes('cover') &&
+            (href.endsWith('.jpg') || href.endsWith('.jpeg') || href.endsWith('.png') || href.endsWith('.gif'))) {
+          const response = await fetch(url);
+          const blob = await response.blob();
+
+          return new Promise((resolve, reject) => {
+            const reader = new FileReader();
+            reader.onloadend = () => {
+              book.destroy();
+              resolve(reader.result);
+            };
+            reader.onerror = () => {
+              book.destroy();
+              reject(new Error('Failed to read cover image'));
+            };
+            reader.readAsDataURL(blob);
+          });
+        }
+      }
+    }
+
+    book.destroy();
+    return null;
+  } catch (error) {
+    console.error('EPUB cover extraction error:', error);
+    return null;
+  }
+}
+
 // Create EPUB renderer
 export async function createEPUBReader(arrayBuffer, containerElement) {
   const ePub = (await import('epubjs')).default;

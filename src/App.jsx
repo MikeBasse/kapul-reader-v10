@@ -171,18 +171,12 @@ export default function App() {
     }
   };
 
-  // Handle text selection
-  const handleSelect = () => {
-    const text = window.getSelection().toString().trim();
-    if (text.length > 3) {
-      setSelectedText(text);
-      setShowAI(true);
-      setAIResponse('');
-    }
-  };
-
   // AI actions
   const handleAI = async (mode) => {
+    if (!selectedText || selectedText.trim().length < 2) {
+      setAIResponse('Please select some text first.');
+      return;
+    }
     setIsLoading(true);
     try {
       let response;
@@ -191,9 +185,9 @@ export default function App() {
       } else if (mode === 'solve') {
         response = await solveProblem(selectedText);
       }
-      setAIResponse(response);
+      setAIResponse(response || 'No response received. Please try again.');
     } catch (error) {
-      setAIResponse('An error occurred. Please try again.');
+      setAIResponse('Error: ' + (error.message || 'Something went wrong. Please try again.'));
     }
     setIsLoading(false);
   };

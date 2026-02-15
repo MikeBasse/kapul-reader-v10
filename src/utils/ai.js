@@ -30,24 +30,39 @@ export function isAPIConfigured() {
 
 // Make API call to Claude via backend proxy
 async function callClaudeAPI(messages, systemPrompt) {
-  const response = await fetch(API_CONFIG.endpoint, {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json'
-    },
-    body: JSON.stringify({
-      messages: messages,
-      system: systemPrompt
-    })
-  });
+  let response;
+  try {
+    response = await fetch(API_CONFIG.endpoint, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        messages: messages,
+        system: systemPrompt
+      })
+    });
+  } catch (networkError) {
+    throw new Error('Network error: Could not reach the server. Check your internet connection.');
+  }
 
   if (!response.ok) {
-    const error = await response.json().catch(() => ({}));
-    throw new Error(error.error?.message || `API Error: ${response.status}`);
+    let errorMessage = `API Error: ${response.status}`;
+    try {
+      const errorData = await response.json();
+      errorMessage = errorData.error?.message || errorMessage;
+    } catch (e) {
+      // Could not parse error response
+    }
+    throw new Error(errorMessage);
   }
 
   const data = await response.json();
-  return data.content[0]?.text || '';
+  const text = data.content?.[0]?.text;
+  if (!text) {
+    throw new Error('AI returned an empty response. Please try again.');
+  }
+  return text;
 }
 
 // Explain selected text

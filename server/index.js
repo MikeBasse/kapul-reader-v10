@@ -62,6 +62,19 @@ app.post('/api/claude', async (req, res) => {
   }
 
   try {
+    const requestBody = {
+      model: ANTHROPIC_MODEL,
+      max_tokens: MAX_TOKENS,
+      messages: messages
+    };
+
+    // Only include system if it's a non-empty string
+    if (system && system.trim()) {
+      requestBody.system = system;
+    }
+
+    console.log(`API Request: model=${ANTHROPIC_MODEL}, messages=${messages.length}, system=${system ? 'yes' : 'no'}`);
+
     const response = await fetch('https://api.anthropic.com/v1/messages', {
       method: 'POST',
       headers: {
@@ -69,27 +82,24 @@ app.post('/api/claude', async (req, res) => {
         'x-api-key': ANTHROPIC_API_KEY,
         'anthropic-version': '2023-06-01'
       },
-      body: JSON.stringify({
-        model: ANTHROPIC_MODEL,
-        max_tokens: MAX_TOKENS,
-        system: system || '',
-        messages: messages
-      })
+      body: JSON.stringify(requestBody)
     });
 
     if (!response.ok) {
-      const error = await response.json().catch(() => ({}));
+      const errorData = await response.json().catch(() => ({}));
+      console.error(`Claude API Error ${response.status}:`, JSON.stringify(errorData));
       return res.status(response.status).json({
-        error: error.error || { message: `API Error: ${response.status}` }
+        error: errorData.error || { message: `API Error: ${response.status} - ${response.statusText}` }
       });
     }
 
     const data = await response.json();
+    console.log(`API Response: ${data.content?.[0]?.text?.slice(0, 50) || 'empty'}...`);
     res.json(data);
   } catch (error) {
-    console.error('Claude API Error:', error);
+    console.error('Claude API Connection Error:', error.message);
     res.status(500).json({
-      error: { message: 'Failed to connect to Claude API' }
+      error: { message: 'Failed to connect to Claude API: ' + error.message }
     });
   }
 });

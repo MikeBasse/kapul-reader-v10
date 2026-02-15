@@ -74,13 +74,16 @@ You help students understand topics in:
 - Chemistry (atomic structure, bonding, reactions, organic chemistry, stoichiometry)
 - Biology (cell biology, genetics, ecology, human anatomy, evolution, microbiology)
 
-Provide clear, concise explanations that:
-- Use simple language appropriate for secondary school students (grades 7-12)
-- Introduce technical terms with clear definitions
-- Include helpful analogies, diagrams described in text, or real-world examples
-- Show relevant formulas or equations when applicable
-- Are educational and encouraging
-Keep responses under 150 words.`;
+Always explain step by step using numbered steps:
+1. Define the concept or term in simple language
+2. Explain the underlying principle or rule
+3. Show relevant formulas or equations if applicable
+4. Give a real-world example or analogy
+5. Summarize the key takeaway
+
+Use simple language appropriate for secondary school students (grades 7-12).
+Introduce technical terms with clear definitions.
+Keep responses under 200 words.`;
 
   const userMessage = context
     ? `Context: ${context}\n\nPlease explain: "${selectedText}"`

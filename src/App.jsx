@@ -357,6 +357,23 @@ export default function App() {
 
   const currentBook = books.find(b => b.id === currentBookId);
 
+  // Format AI response: convert markdown to HTML
+  const formatAIResponse = (text) => {
+    return text
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
+      .replace(/\*(.+?)\*/g, '<em>$1</em>')
+      .replace(/^### (.+)$/gm, '<strong style="font-size:14px;display:block;margin:8px 0 4px">$1</strong>')
+      .replace(/^## (.+)$/gm, '<strong style="font-size:15px;display:block;margin:10px 0 4px">$1</strong>')
+      .replace(/^# (.+)$/gm, '<strong style="font-size:16px;display:block;margin:12px 0 6px">$1</strong>')
+      .replace(/^[•\-] (.+)$/gm, '<div style="padding-left:12px">• $1</div>')
+      .replace(/^(\d+)\. (.+)$/gm, '<div style="padding-left:12px">$1. $2</div>')
+      .replace(/`([^`]+)`/g, '<code style="background:var(--bg-tertiary);padding:1px 4px;border-radius:3px;font-size:12px">$1</code>')
+      .replace(/\n/g, '<br>');
+  };
+
   return (
     <>
       <style>{`
@@ -1458,7 +1475,7 @@ export default function App() {
           {isLoading ? (
             <div className="loading">Thinking...</div>
           ) : aiResponse && (
-            <div className="ai-response">{aiResponse}</div>
+            <div className="ai-response" dangerouslySetInnerHTML={{ __html: formatAIResponse(aiResponse) }} />
           )}
         </div>
 

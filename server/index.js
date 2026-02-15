@@ -18,7 +18,7 @@ const PORT = process.env.PORT || 3001;
 
 // API Configuration from environment variables
 const ANTHROPIC_API_KEY = process.env.ANTHROPIC_API_KEY;
-const ANTHROPIC_MODEL = process.env.ANTHROPIC_MODEL || 'claude-3-haiku-20240307';
+const ANTHROPIC_MODEL = process.env.ANTHROPIC_MODEL || 'claude-3-5-haiku-20241022';
 const MAX_TOKENS = parseInt(process.env.MAX_TOKENS) || 1024;
 
 // Middleware

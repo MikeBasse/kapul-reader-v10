@@ -82,7 +82,7 @@ Keep responses under 150 words.`;
     }
   } catch (error) {
     console.error('AI Explain Error:', error);
-    return getFallbackExplanation(selectedText);
+    return `**AI Error:** ${error.message}\n\nShowing offline explanation instead:\n\n${getFallbackExplanation(selectedText)}`;
   }
 }
 
@@ -119,7 +119,7 @@ Use numbered steps for clarity. Write formulas and equations clearly.`;
     }
   } catch (error) {
     console.error('AI Solve Error:', error);
-    return getFallbackSolution(problemText);
+    return `**AI Error:** ${error.message}\n\nShowing offline solution instead:\n\n${getFallbackSolution(problemText)}`;
   }
 }
 

@@ -131,7 +131,7 @@ This creates the `dist` folder with optimized static files.
 | Variable | Required | Default | Description |
 |----------|----------|---------|-------------|
 | `ANTHROPIC_API_KEY` | Yes | - | Your Anthropic API key |
-| `ANTHROPIC_MODEL` | No | `claude-3-haiku-20240307` | Claude model to use |
+| `ANTHROPIC_MODEL` | No | `claude-3-5-haiku-20241022` | Claude model to use |
 | `MAX_TOKENS` | No | `1024` | Max tokens per response |
 | `PORT` | No | `3001` | Server port |
 

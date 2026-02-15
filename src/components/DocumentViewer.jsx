@@ -1,5 +1,6 @@
 // Document Viewer Component for PDF and EPUB files
 import React, { useState, useEffect, useRef } from 'react';
+import { TextLayer } from 'pdfjs-dist';
 import { renderPDFPage, getPDFPageText, createEPUBReader } from '../utils/documentParser';
 
 // PDF Viewer Component
@@ -7,6 +8,7 @@ export function PDFViewer({ fileData, onPageChange, onTextSelect, initialPage = 
   const canvasRef = useRef(null);
   const textLayerRef = useRef(null);
   const containerRef = useRef(null);
+  const textLayerInstanceRef = useRef(null);
   const [currentPage, setCurrentPage] = useState(initialPage);
   const [numPages, setNumPages] = useState(0);
   const [scale, setScale] = useState(1.2);
@@ -40,33 +42,32 @@ export function PDFViewer({ fileData, onPageChange, onTextSelect, initialPage = 
         setNumPages(result.numPages);
         setCanvasSize({ width: result.width, height: result.height });
 
-        // Build text layer for selection
-        if (textLayerRef.current && result.textItems) {
+        // Build text layer for selection using pdfjs built-in TextLayer
+        if (textLayerRef.current && result.textContent) {
+          // Cancel any previous TextLayer render
+          if (textLayerInstanceRef.current) {
+            textLayerInstanceRef.current.cancel();
+            textLayerInstanceRef.current = null;
+          }
           textLayerRef.current.innerHTML = '';
-          result.textItems.forEach(item => {
-            if (item.str.trim()) {
-              const span = document.createElement('span');
-              span.textContent = item.str;
-              span.style.cssText = `
-                position: absolute;
-                left: ${item.left}px;
-                top: ${item.top}px;
-                font-size: ${item.fontSize}px;
-                font-family: sans-serif;
-                color: transparent;
-                white-space: pre;
-                pointer-events: all;
-                user-select: text;
-              `;
-              textLayerRef.current.appendChild(span);
-            }
+
+          // Set the scale factor CSS variable required by pdfjs TextLayer
+          textLayerRef.current.style.setProperty('--scale-factor', result.viewport.scale);
+
+          const textLayer = new TextLayer({
+            textContentSource: result.textContent,
+            container: textLayerRef.current,
+            viewport: result.viewport
           });
+          textLayerInstanceRef.current = textLayer;
+          await textLayer.render();
         }
 
         if (onPageChangeRef.current) {
           onPageChangeRef.current(currentPage, result.numPages);
         }
       } catch (err) {
+        if (err?.name === 'AbortException') return; // TextLayer was cancelled
         console.error('PDF render error:', err);
         setError('Failed to render page');
       } finally {
@@ -76,6 +77,13 @@ export function PDFViewer({ fileData, onPageChange, onTextSelect, initialPage = 
     };
 
     renderPage();
+
+    return () => {
+      if (textLayerInstanceRef.current) {
+        textLayerInstanceRef.current.cancel();
+        textLayerInstanceRef.current = null;
+      }
+    };
   }, [fileData, currentPage, scale]);
 
   // Handle text selection
@@ -217,6 +225,17 @@ export function PDFViewer({ fileData, onPageChange, onTextSelect, initialPage = 
           bottom: 0;
           overflow: hidden;
           line-height: 1;
+          opacity: 1;
+        }
+        .pdf-text-layer span,
+        .pdf-text-layer br {
+          color: transparent;
+          position: absolute;
+          white-space: pre;
+          transform-origin: 0% 0%;
+          pointer-events: all;
+          user-select: text;
+          cursor: text;
         }
         .pdf-text-layer ::selection {
           background: rgba(184, 87, 12, 0.3);

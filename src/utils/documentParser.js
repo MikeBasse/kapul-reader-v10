@@ -75,25 +75,15 @@ export async function renderPDFPage(arrayBuffer, pageNumber, canvas, scale = 1.5
       background: 'white'
     }).promise;
 
-    // Get text content with positions for text layer
+    // Return raw textContent and viewport for the built-in TextLayer
     const textContent = await page.getTextContent();
-    const textItems = textContent.items.map(item => {
-      const tx = pdfjsLib.Util.transform(viewport.transform, item.transform);
-      return {
-        str: item.str,
-        left: tx[4],
-        top: tx[5] - item.height * scale,
-        width: item.width * scale,
-        height: item.height * scale,
-        fontSize: Math.abs(tx[0])
-      };
-    });
 
     return {
       width: viewport.width,
       height: viewport.height,
       numPages: pdf.numPages,
-      textItems: textItems
+      textContent,
+      viewport
     };
   } catch (error) {
     console.error('PDF render error:', error);
